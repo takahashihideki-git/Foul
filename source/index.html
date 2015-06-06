@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Foul</title>
+<link rel="stylesheet" type="text/css" href="ActivityIndicator.css" />
+<style>
+html,
+body {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: sans-serif;
+}
+body {
+  padding-top: 36px;
+}
+/* address bar */
+.addressBar {
+  box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: #eee;    
+}
+.addressBar-buttons-left {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+.addressBar-buttons-right {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+.addressBar-button {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-size: cover;
+  border: 1px solid #eee;
+  border-radius: 5px;
+}
+.addressBar-button:hover {
+  border: 1px solid #ccc;
+}
+.addressBar-button.inactive {
+  opacity: 0.3;
+}
+.addressBar-button.inactive:hover {
+  border: 1px solid #eee;
+}
+.addressBar-button-home {
+  background-image: url( "ic_home_black_18dp.png" );
+}
+.addressBar-button-back {
+  background-image: url( "ic_arrow_back_black_18dp.png" );
+}
+.addressBar-button-forward {
+  background-image: url( "ic_arrow_forward_black_18dp.png" );
+}
+.addressBar-button-reload {
+  background-image: url( "ic_refresh_black_18dp.png" );
+}
+.addressBar-button-add {
+  background-image: url( "ic_add_black_18dp.png" );
+}
+.addressBar-url {
+  box-sizing: border-box;
+  width: 100%;
+  height: 36px;
+  padding: 5px 35px 5px 125px;
+}
+input[name=url] {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 26px;
+  padding: 2px 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 12px;
+}
+.addressBar-message {
+  position: absolute;
+  top: 36px;
+  left: 0px;
+  width: 100%;
+  height: 0px;
+  overflow: hidden;
+  background-color: rgba(118, 199, 215, 0.9);
+  text-align: center;
+  line-height: 2;
+  color: #fff;
+  transition: height 0.2s linear;
+}
+.addressBar-message.visible {
+  height: 32px;
+}
+.addressBar-message .icon-home {
+  position: relative;
+  top: -2px;
+  margin-right: 3px;
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
+  background-image: url( "ic_home_black_18dp.png" );
+  background-size: cover;
+}
+/* webview */
+.webviewContainer {
+  height: 100%;
+}
+/* spinner */
+#activityIndicator {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  top: 4px;
+  left: 94px;
+}
+</style>
+</head>
+<body>
+
+<form class="addressBar">
+  <div class="addressBar-buttons-left">
+    <div class="addressBar-button addressBar-button-home"></div>
+    <div class="addressBar-button addressBar-button-back"></div>
+    <div class="addressBar-button addressBar-button-forward"></div>
+    <div class="addressBar-button addressBar-button-reload"></div>
+    <img id="activityIndicator" src="ActivityIndicator.png" style="-webkit-animation-name: dashcode-activity-indicator; -webkit-animation-duration: 1s; -webkit-animation-iteration-count: infinite; -webkit-animation-timing-function: linear; display:none" />
+  </div>
+  <div class="addressBar-url">
+    <input type="text" name="url" placeholder="URL">
+  </div>
+  <div class="addressBar-buttons-right">
+    <div class="addressBar-button addressBar-button-add"></div>
+  </div>
+  <div class="addressBar-message">Shortcut has been added to the <span class="icon icon-home"></span>Home.</div>
+</form>
+
+<div class="webviewContainer">
+  <webview autosize="on" nodeintegration="on" plugins="on" disablewebsecurity="on" src="home.html" preload="webview.js"></webview>
+</div>
+
+<script class="webviewTemplate" type="text/x-template">
+  <webview autosize="on" nodeintegration="on" plugins="on" disablewebsecurity="on"></webview>
+</script>
+
+<script class="extensionCode" type="text/x-template">
+try {
+  
+  window.ipc = require('ipc');
+
+  window.fileSystem = {
+    open: function ( args ) {
+      var callback = "_fs_" + ( new Date() ).getTime();
+      window.fileSystem.setCallback( callback, args.success, args.error );
+      window.ipc.sendToHost( {
+        method: "open",
+        path: args.path,
+        callback: callback
+      } );
+    },
+    save: function ( args ) {
+      var callback = "_fs_" + ( new Date() ).getTime();
+      window.fileSystem.setCallback( callback, args.success, args.error );
+      window.ipc.sendToHost( { 
+        method: "save",
+        path: args.path, 
+        content: args.content,
+        callback: callback
+      } );
+    },
+    setCallback: function ( name, success, error ) {
+      window.ipc.on( name, function ( message ) {
+        if ( message.status ) {
+          success( message.path, message.content );
+        }
+        else {
+          error( message.path, message.content );
+        }
+      } );
+    },
+    applicationPath: "{applicationPath}"
+  };
+
+  window.foul = {
+    send: function ( channel, arg, callback ) {
+      var innerCallbackName = "_fs_" + ( new Date() ).getTime();
+      window.foul.setCallback( innerCallbackName, callback );
+      window.ipc.sendToHost( { 
+        method: "sendSync",
+        channel: channel, 
+        arg: arg,
+        callback: innerCallbackName
+      } );
+    },
+    setCallback: function ( name, callback ) {
+      window.ipc.on( name, function ( message ) {
+        callback( message );
+      } );
+    }
+  }
+
+} catch ( e ) { console.log( e ) }
+</script>
+
+<script>
+/**
+Foul Browser
+*/
+var Foul = function ( args ) {
+  this.addressBar = args.addressBar;
+  this.webviewContainer = args.webviewContainer;
+  this.webviewTemplate = args.webviewTemplate;
+  this.webview = this.webviewContainer.querySelector( "webview" );
+  this.extensionCode = args.extensionCode;
+  this.initialize();
+}
+Foul.prototype = {
+
+  addressBar: null,
+  webview: null,
+  webviewContainer: null,
+  webviewTemplate: null,
+  extensionCode: null,
+  focused: null,
+
+  initialize: function () {
+
+    var foul = this;
+
+    // addressBar
+    foul.initializeAddressBar();
+
+    // initialize adress bar buttons
+    foul.updateAddressBarButtons();
+
+    // initialize webview
+    foul.initializeWebview();
+
+  },
+
+  initializeAddressBar: function () {
+
+    var foul = this;
+
+    foul.addressBar.addEventListener( "submit", function ( e ) {
+      e.preventDefault();
+      var url = foul.addressBar.querySelector( "input" ).value;
+      if ( ( /^https*:\/\// ).test( url ) || ( /^file:\/\// ).test( url ) ) {
+        foul.webview.executeJavaScript( "window.location.href='" + url + "'" );
+      }
+      else {
+        foul.webview.executeJavaScript( "window.location.href='http://www.google.com/search?q=" + encodeURIComponent( url ) + "'" ); 
+      }
+    }, false );
+
+    foul.addressBar.querySelector( ".addressBar-button-home" ).addEventListener( "click", function () {
+      var url = "file://" + __dirname + "/home.html";
+      foul.loadUrl( url );
+    } );
+    foul.addressBar.querySelector( ".addressBar-button-back" ).addEventListener( "click", function () {
+      foul.historyBack();
+    } );
+    foul.addressBar.querySelector( ".addressBar-button-forward" ).addEventListener( "click", function () {
+      foul.historyForward();
+    } );
+    foul.addressBar.querySelector( ".addressBar-button-reload" ).addEventListener( "click", function () {
+      foul.refresh();
+    } );
+    foul.addressBar.querySelector( ".addressBar-button-add" ).addEventListener( "click", function () {
+      if ( Gv.util.hasClass( foul.addressBar.querySelector( ".addressBar-button-add" ), "inactive" ) ) {
+        return;
+      }
+      if ( foul.addressBar.querySelector( "input" ).value ) {
+        var result = Gv.ipc.sendSync( "addShortcut", { 
+          url: foul.webview.getUrl(),
+          title: foul.webview.getTitle()
+        } );
+        if ( result ) {
+          Gv.util.addClass( foul.addressBar.querySelector( ".addressBar-button-add" ), "inactive" );
+          Gv.util.addClass( foul.addressBar.querySelector( ".addressBar-message" ), "visible" );
+          setTimeout( function () {
+            Gv.util.removeClass( foul.addressBar.querySelector( ".addressBar-message" ), "visible" );
+          }, 3000 );
+        }
+      }
+    } );
+
+    // context menu
+    var menu = new Gv.Menu();
+    menu.append( new Gv.MenuItem( { 
+      label: 'Copy',
+      click: function() {  
+        ( Gv.remote.getCurrentWebContents() ).copy();
+      },
+      accelerator: "CommandOrControl+C"
+    } ) );
+    menu.append( new Gv.MenuItem( { 
+      label: 'Cut',
+      click: function() {  
+        ( Gv.remote.getCurrentWebContents() ).cut();
+      },
+      accelerator: "CommandOrControl+X"
+    } ) );
+    menu.append( new Gv.MenuItem( { 
+      label: 'Paste',
+      click: function() {  
+        ( Gv.remote.getCurrentWebContents() ).paste();
+      },
+      accelerator: "CommandOrControl+V"
+    } ) );
+    menu.append( new Gv.MenuItem( { 
+      label: 'Delete',
+      click: function() {  
+        ( Gv.remote.getCurrentWebContents() ).delete();
+      },
+      accelerator: "CommandOrControl+D"
+    } ) );
+    menu.append( new Gv.MenuItem( { 
+      label: 'Select All', 
+      click: function() {  
+        ( Gv.remote.getCurrentWebContents() ).selectAll();
+      },
+      accelerator: "CommandOrControl+A"
+    } ) );
+
+    foul.addressBar.querySelector( "input" ).addEventListener( "contextmenu", function ( e ) {
+        e.preventDefault();      
+        menu.popup( Gv.remote.getCurrentWindow() );    
+    } );
+
+    // check focus for global shortcuts 
+    foul.addressBar.querySelector( "input" ).addEventListener( "mousedown", function ( e ) {
+      foul.focused = Gv.remote.getCurrentWebContents();
+    } );
+
+  },
+
+  inputAddress: function ( url ) {
+    this.addressBar.querySelector( "input" ).value = url.replace( /^(https*:\/\/)[^\.@]+@/, function ( a, b ) { return b } ); // remove username:password@
+  },
+
+  updateAddressBarButtons: function () {
+
+    try {
+      this.webview.getUrl();
+    } catch ( e ) {
+      Gv.util.addClass( this.addressBar.querySelector( ".addressBar-button-back" ), "inactive" );
+      Gv.util.addClass( this.addressBar.querySelector( ".addressBar-button-forward" ), "inactive" );
+      Gv.util.addClass( this.addressBar.querySelector( ".addressBar-button-reload" ), "inactive" );
+      return;
+    }
+
+    if ( ! this.webview.canGoBack() ) {
+      Gv.util.addClass( this.addressBar.querySelector( ".addressBar-button-back" ), "inactive" );
+    }
+    else {
+      Gv.util.removeClass( this.addressBar.querySelector( ".addressBar-button-back" ), "inactive" );
+    }
+    if ( ! this.webview.canGoForward() ) {
+      Gv.util.addClass( this.addressBar.querySelector( ".addressBar-button-forward" ), "inactive" );
+    }
+    else {
+      Gv.util.removeClass( this.addressBar.querySelector( ".addressBar-button-forward" ), "inactive" );
+    }
+    if ( ! this.webview.getAttribute( "src" ) ) {
+      Gv.util.addClass( this.addressBar.querySelector( ".addressBar-button-reload" ), "inactive" );
+    }
+    else {
+      Gv.util.removeClass( this.addressBar.querySelector( ".addressBar-button-reload" ), "inactive" );
+    }
+
+    if ( 
+      Gv.ipc.sendSync( "isRegistered", { url: this.webview.getUrl() } ) ||  
+      this.isHome( this.webview.getUrl() )
+    ) {
+      Gv.util.addClass( this.addressBar.querySelector( ".addressBar-button-add" ), "inactive" );
+    }
+    else {
+      Gv.util.removeClass( this.addressBar.querySelector( ".addressBar-button-add" ), "inactive" );  
+    }
+
+  },
+
+  startAddressBarSpinner: function () {
+    this.addressBar.querySelector( ".addressBar-button-reload" ).style.display = "none";
+    this.addressBar.querySelector( "#activityIndicator" ).style.display = "inline-block";
+  },
+
+  stopAddressBarSpinner: function () {
+    this.addressBar.querySelector( ".addressBar-button-reload" ).style.display = "inline-block";
+    this.addressBar.querySelector( "#activityIndicator" ).style.display = "none";
+  },
+
+  initializeWebview: function () {
+
+    var foul = this;
+
+    // loading
+    foul.webview.addEventListener( "did-start-loading", function () {
+      // spin spinner
+      document.querySelector( "title" ).innerHTML = "loading ...";
+      foul.startAddressBarSpinner();
+    } );
+
+    // loaded
+    foul.webview.addEventListener( "did-finish-load", function () {
+
+      var url = foul.webview.getUrl();
+      if ( foul.isHome( url ) ) {
+        foul.inputAddress( "" );
+      }
+      else {
+        foul.inputAddress( url );
+      }
+      document.querySelector( "title" ).innerHTML = foul.webview.getTitle();
+      foul.stopAddressBarSpinner();
+      foul.extendWebview( url );
+      foul.updateAddressBarButtons();
+
+    } );
+
+    // response
+    foul.webview.addEventListener( "did-get-response-details", function ( e ) {
+      if ( e.httpResponseCode == "401" ) {
+        foul.loadUrl( "file://" + __dirname + "/401.html?url=" + encodeURIComponent( e.originalUrl ) );
+      }
+    } );
+
+    // new window
+    foul.webview.addEventListener( "new-window", function( e ) {
+      foul.newWindow( e.url );
+    } );
+
+    // console
+    foul.webview.addEventListener( 'console-message', function( e ) {
+      console.log( "webview: " + e.message );
+    } );
+
+    // drop file
+    foul.webview.ondrop = function ( e ) {
+      e.preventDefault();
+      var file = e.dataTransfer.files[ 0 ];
+      foul.webview.executeJavaScript( "window.location.href='" + file.path.replace( /\\/g, "\\\\" ) + "'" );
+      return false;
+    }
+
+    // context menu
+    var menu = new Gv.Menu();
+    menu.append( new Gv.MenuItem( { 
+      label: 'Copy',
+      click: function() {  
+        foul.webview.copy();
+      },
+      accelerator: "CommandOrControl+C"
+    } ) );
+    menu.append( new Gv.MenuItem( { 
+      label: 'Cut',
+      click: function() {  
+        foul.webview.cut();
+      },
+      accelerator: "CommandOrControl+X"
+    } ) );
+    menu.append( new Gv.MenuItem( { 
+      label: 'Paste',
+      click: function() {  
+        foul.webview.paste();
+      },
+      accelerator: "CommandOrControl+V"
+    } ) );
+    menu.append( new Gv.MenuItem( { 
+      label: 'Delete',
+      click: function() {  
+        foul.webview.delete();
+      },
+      accelerator: "CommandOrControl+D"
+    } ) );
+    menu.append( new Gv.MenuItem( { 
+      label: 'Select All', 
+      click: function() {  
+        foul.webview.selectAll();
+      },
+      accelerator: "CommandOrControl+A"
+    } ) );
+
+    foul.webview.addEventListener( "contextmenu", function ( e ) {
+      if ( ! foul.isHome( e.target.getUrl() ) ) {
+        e.preventDefault();      
+        menu.popup( Gv.remote.getCurrentWindow() );    
+      }
+    } );
+
+    // check focus for global shortcuts 
+    foul.webview.addEventListener( "mousedown", function ( e ) {
+      foul.focused = foul.webview;
+    } );
+
+    // ipc listener
+    foul.webview.addEventListener( 'ipc-message', function( e ) {
+
+      var message = e.channel;
+
+      if ( message.method == "open" ) {
+        foul.openFile( message.path, message.callback )
+      }
+
+      if ( message.method == "save" ) {
+        foul.saveFile( message.path, message.content, message.callback )
+      }
+
+      if ( message.method == "sendSync" ) {
+        var result = Gv.ipc.sendSync( message.channel, message.arg );
+        foul.webview.send( message.callback, result ); 
+      }
+
+    } );
+
+  },
+
+  extendWebview: function ( url ) {
+
+    if ( url.match( /^file:\/\// ) || Gv.ipc.sendSync( "isRegistered", { url: url } ) ) {
+
+      this.webview.executeJavaScript( this.extensionCode.replace( /{applicationPath}/, __dirname.replace( /\\/g, "\\\\" ) ) );
+      this.webview.executeJavaScript( "if ( window.onFoul ){ window.onFoul() }" );
+
+    }
+
+  },
+
+  openFile: function ( path, callback ) {
+
+    var foul = this;
+
+    var open = function ( path ) {
+      Gv.fs.readFile( path, 'utf8', function ( err, data ) {
+        if ( err ) {
+          foul.webview.send( callback, { status: 0, path: path, content: err } );
+        }
+        else {
+          foul.webview.send( callback, { status: 1, path: path, content: data } );
+        }
+      } );
+    }
+
+    if ( ! path ) {
+      Gv.dialog.showOpenDialog( { properties: [ 'openFile', 'createDirectory' ] }, function ( paths ){
+        if ( paths ) {
+          open( paths[ 0 ] );
+        }
+      } );
+    }
+    else {
+      open( path );
+    }
+
+  },
+
+  saveFile: function ( path, content, callback ) {
+
+    var foul = this;
+
+    var save = function ( path ) {
+      Gv.fs.writeFile( path, content, function ( err ) {
+        if (err) {
+          foul.webview.send( callback, { status: 0, path: path, content: err } );
+        }
+        else {
+          foul.webview.send( callback, { status: 1, path: path, content: "" } );
+        }
+      } );
+    }
+
+    if ( ! path ) {
+      Gv.dialog.showSaveDialog( function ( path ){
+        if ( path ) {
+          save( path );
+        }
+      } );
+    }
+    else {
+      save( path );
+    }
+
+  },
+
+  historyBack: function () {
+    if ( this.webview.canGoBack() ) {
+      this.webview.goBack();
+    }
+  },
+
+  historyForward: function () {
+    if ( this.webview.canGoForward() ) {
+      this.webview.goForward();
+    }
+  },
+
+  refresh: function () {
+    try {
+      //Gv.foul.webview.reload();
+      this.webview.executeJavaScript( "window.location.reload()" );
+    } catch ( e ) {}
+  },
+
+  loadUrl: function ( url ) {
+    this.webview.executeJavaScript( "window.location.href='" + url.replace( /\\/g, "\\\\" ) + "'" );
+  },
+
+  viewSource: function () {
+
+    var url = this.webview.getUrl();
+    if ( url ) {
+      this.webview.executeJavaScript( "window.location.replace('view-source:" + this.webview.getUrl().replace( /\\/g, "\\\\" ) + "')" );
+    }
+
+  },
+
+  newWindow: function ( url ) {
+
+    var newWindow = new Gv.BrowserWindow( { width: 1024, height: 768 } );
+
+    // and load the index.html of the app.
+    if ( url ) {
+      newWindow.loadUrl( "file://" + __dirname + "/index.html?url=" + encodeURIComponent( url ) );
+    }
+    else {
+      newWindow.loadUrl( "file://" + __dirname + "/index.html" );
+    }
+    //newWindow.openDevTools();
+
+    Gv.resetGlobalShortcuts();
+
+  },
+
+  openDevTools: function () {
+    try {
+      this.webview.openDevTools();
+    } catch ( e ) {}
+  },
+
+  isHome: function ( url ) {
+
+    var status = false;
+    if ( url == window.location.href.replace( window.location.search, "" ).replace( /index\.html/, "home.html" ) ) {
+      status = true;
+    }
+
+    return status;
+
+  }
+
+};
+
+// Main
+
+const Gv    = new Object();
+Gv.remote   = require( 'remote' );
+Gv.fs       = Gv.remote.require( 'fs' );
+Gv.dialog   = Gv.remote.require( 'dialog' );
+Gv.Menu     = Gv.remote.require( 'menu' );
+Gv.MenuItem = Gv.remote.require( 'menu-item' );
+Gv.GlobalShortcut = Gv.remote.require( 'global-shortcut' );
+Gv.BrowserWindow = Gv.remote.require( 'browser-window' );
+Gv.ipc      = require( 'ipc' );
+
+var setGlobalShortcuts = function () {
+
+  // Global shortcuts
+  Gv.setGlobalShortcuts = function () {
+    Gv.GlobalShortcut.register( 'CommandOrControl+C', function() { 
+      if ( Gv.remote.getCurrentWindow().isFocused() && Gv.foul.focused ) {
+        Gv.foul.focused.copy();
+      }
+    } );
+    Gv.GlobalShortcut.register( 'CommandOrControl+X', function() { 
+      if ( Gv.remote.getCurrentWindow().isFocused() && Gv.foul.focused ) {
+        Gv.foul.focused.cut();
+      }
+    } );
+    Gv.GlobalShortcut.register( 'CommandOrControl+V', function() { 
+      if ( Gv.remote.getCurrentWindow().isFocused() && Gv.foul.focused ) {
+        Gv.foul.focused.paste();
+      }
+    } );
+    Gv.GlobalShortcut.register( 'CommandOrControl+D', function() { 
+      if ( Gv.remote.getCurrentWindow().isFocused() && Gv.foul.focused ) {
+        Gv.foul.focused.delete();
+      }
+    } );
+    Gv.GlobalShortcut.register( 'CommandOrControl+A', function() { 
+      if ( Gv.remote.getCurrentWindow().isFocused() && Gv.foul.focused ) {
+        Gv.foul.focused.selectAll();
+      }
+    } );
+  }
+  Gv.resetGlobalShortcuts = function () {
+    Gv.GlobalShortcut.unregisterAll()
+  }
+  window.addEventListener( "focus", function () {
+    Gv.setGlobalShortcuts();
+  }, false );
+  window.addEventListener( "blur", function () {
+    Gv.resetGlobalShortcuts();
+  }, false );
+
+}
+
+var setUtilities = function () {
+
+  // Utility
+  Gv.util = new Object();
+  Gv.util.addClass = function ( dom, className ) {
+    var classes = dom.getAttribute( "class" ).split( /\s+/ );
+    classes.push( className );
+    dom.setAttribute( "class", classes.join( " " ) );
+
+  }
+  Gv.util.removeClass = function ( dom, className ) {
+    var classes = dom.getAttribute( "class" ).split( /\s+/ );
+    var newClasses = new Array(); 
+    for ( var i = 0; i < classes.length; i++ ) {
+      if ( classes[ i ] != className ) {
+        newClasses.push( classes[ i ] );
+      }
+    }
+    dom.setAttribute( "class", newClasses.join( " " ) );
+  }
+  Gv.util.hasClass = function ( dom, className ) {
+    var classes = dom.getAttribute( "class" ).split( /\s+/ );
+    var hasClass = false;
+    for ( var i = 0; i < classes.length; i++ ) {
+      if ( classes[ i ] == className ) {
+        hasClass = true;
+        break;
+      }
+    }
+    return hasClass;
+  }
+
+}
+
+window.onload = function () {
+
+  setGlobalShortcuts();
+  setUtilities();
+
+  // Create Foul Browser
+  Gv.foul = new Foul( {
+    addressBar: document.querySelector( "form" ),
+    webviewContainer: document.querySelector( ".webviewContainer" ),
+    webviewTemplate: document.querySelector( ".webviewTemplate" ).innerHTML,
+    extensionCode: document.querySelector( ".extensionCode" ).innerHTML
+  } );
+
+  // load initial URL
+  if ( window.location.search.match( /\?url=(.+)$/ ) ) {
+    var url = decodeURIComponent( RegExp.$1 );
+    Gv.foul.webview.executeJavaScript( "window.location.href='" + url + "'" );
+  }
+
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>401 Unauthorized</title>
+<link href='http://fonts.googleapis.com/css?family=Baumans' rel='stylesheet' type='text/css'>
+<style>
+body {
+  background-color: #eee;
+  font-family: sans-serif;
+  text-align: center;
+  padding: 1em;
+  color: #666;
+}
+h1 { 
+  font-size: 40px;
+  color: #999;
+}
+table {
+  margin: 0 auto;
+}
+td {
+  padding: 0.2em;
+}
+input {
+  padding: 0.1em;
+  line-height: 1.4;
+}
+input[type="button"] {
+  padding: 0 1em;
+}
+</style>
+</head>
+<body>
+
+<h1>401 Unauthorized</h1>
+
+<p>Try a Basic Authentication ?</p>
+
+<form>
+
+<table>
+  <tr>
+      <td><input type="text" name="username" placeholder="username"></td>
+  </tr>
+  <tr>
+      <td><input type="password" name="password" placeholder="password"></td>
+  </tr>
+  <tr>
+      <td><input type="button" value="Try"></td>
+  </tr>
+</table>
+
+</form>
+
+<script>
+
+var url;
+
+window.onFoul = function () {
+
+  // load initial URL
+  if ( window.location.search.match( /\?url=(.+)$/ ) ) {
+    url = decodeURIComponent( RegExp.$1 );
+  }
+
+  document.querySelector( "input[type=button]" ).addEventListener( "click", function () {
+    var username = document.querySelector( "input[name=username]" ).value;
+    var password = document.querySelector( "input[name=password]" ).value;
+    if ( username && password ) {
+      window.location.href = url.replace( /^(https*:\/\/)/, function ( a, b ) {
+        return b + username + ":" + password + "@";
+      } );
+    }
+  } );
+
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,438 @@
+  <!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Foul</title>
+<link href='http://fonts.googleapis.com/css?family=Baumans' rel='stylesheet' type='text/css'>
+<style>
+body {
+  background-color: #a5ecfa;
+  font-family: "Helvetica Neue", "Arial", sans-serif;
+  text-align: center;
+  padding: 5em;
+  color: #39AEC6;
+}
+.noselect {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+}
+h1 { 
+  font-size: 60px;
+  font-family: 'Baumans', cursive;
+  color: #45828E;
+}
+.baumans {
+  font-family: 'Baumans', cursive;
+  font-size: 40px;
+}
+.shortcut {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 148px;
+  height: 100px;
+  padding: 1em;
+  cursor: pointer;
+  border: 1px dashed #a5ecfa;
+}
+.shortcut:hover {
+  border: 1px dotted #39AEC6;
+  border-radius: 10px;
+}
+.shortcut-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  background-size: cover;
+  background-color: #39AEC6;
+  border: 5px solid #fff;
+  border-radius: 48px;
+  opacity: 0.8;
+}
+.shortcut-title {
+  height: 30px;
+  margin-top: 10px;
+  overflow: hidden;
+  color: #34626B;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1.4;
+  text-align: center;
+}
+.shortcut-title-form {
+  margin-top: 10px;
+}
+.shortcut-title-form input {
+  width: 100%;
+  padding: 0 2px;
+}
+</style>
+</head>
+<body>
+
+<h1>Foul</h1>
+
+<p>The Web Browser with Local File System and Cross-Origin XMLHttpRequest</p>
+<p class="baumans">at</p>
+<p>Your Own Risk</p>
+
+<script class="template-shortcut" type="text/x-template">
+  <div class="shortcut-icon" style="background-image: url('icons/action/ic_open_in_browser_white_48dp.png');"></div>
+  <div class="shortcut-title"></div>
+  <div class="shortcut-title-form" style="display:none"><form><input type="text"></form></div>
+</script>
+
+<script>
+/**
+Home
+*/
+var Home = function () {
+  this.shortcuts = new Array();
+}
+Home.prototype = {
+
+  shortcuts: null,
+  selected: null,
+
+  append: function ( shortcut ) {
+
+    this.shortcuts.push( shortcut );
+
+  },
+
+  update: function () {
+
+    var data = this.makeData();
+    window.foul.send( "updateShortcuts", { shortcuts: data }, function ( message ) { 
+      //console.log( message ) 
+    } );
+
+  },
+
+  makeData: function () {
+
+    var data = new Object();
+
+    for ( var i = 0; i < this.shortcuts.length; i++ ) {
+      data[ this.shortcuts[ i ].url ] = this.shortcuts[ i ].data;
+    }
+
+    return data;
+
+  },
+
+  evenAllZ: function ( int ) {
+
+    for ( var i = 0; i < this.shortcuts.length; i++ ) {
+      this.shortcuts[ i ].element.style.zIndex = int;
+    }
+
+  },
+
+  remove: function ( shortcut ) {
+
+    var updated = new Array();
+
+    for ( var i = 0; i < this.shortcuts.length; i++ ) {
+      if ( this.shortcuts[ i ] != shortcut ) {
+        updated.push( this.shortcuts[ i ] );
+      } 
+    }
+
+    this.shortcuts = updated;
+    this.update();
+
+    delete shortcut;
+
+  }
+
+}
+/**
+Shortcut
+*/
+var Shortcut = function ( args ) {
+  this.home = args.home;
+  this.container = args.container;
+  this.template = args.template;
+  this.url = args.url;
+  this.data = args.data;
+  this.initialize();
+}
+Shortcut.prototype = {
+
+  home: null,
+  container: null,
+  element: null,
+  template: null,
+  url: null,
+  data: null,
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0,
+  startPos: null,
+  lastPos: null,
+  thresholdOfClick: 2,
+  mouseDowned: false,
+  dragging: false,
+  holding: false,
+  holdingTime: 1000,
+  holdingTimer: null,
+  editing: false,
+
+  initialize: function () {
+
+    this.element = document.createElement( "div" );
+    this.element.setAttribute( "class", "shortcut" )
+    this.element.innerHTML = this.template;
+    this.container.appendChild( this.element );
+    this.element.querySelector( ".shortcut-title" ).innerHTML = this.data.title;
+    this.element.querySelector( ".shortcut-title-form input" ).value = this.data.title;
+    if ( this.data.icon ) {
+      this.element.querySelector( ".shortcut-icon" ).style.backgroundImage = "url(file://" + this.data.icon.replace( /\\/g, "\\\\" ) + ")";
+    }
+    this.move( this.data.x, this.data.y  );
+
+    var handler = this;
+
+    this.element.addEventListener( "mousedown", function ( e ) {
+
+      if ( e.which == 3 ) { // right button
+        return;
+      }
+
+      if ( handler.editing ) {
+        return;
+      }
+
+      handler.startPos = {
+        x: e.screenX,
+        y: e.screenY
+      }
+      handler.lastPos = {
+        x: e.screenX,
+        y: e.screenY
+      }
+      var classes = handler.element.getAttribute( "class" ); 
+      handler.mouseDowned = true;
+      handler.holding = true;
+      document.querySelector( "body" ).setAttribute( "class", "noselect" );
+      handler.holdingTimer = setTimeout( function () {
+        if ( handler.holding ) {
+
+          handler.holding = false;
+          handler.dragging = false;
+          handler.mouseDowned = false;
+
+          document.querySelector( "body" ).setAttribute( "class", "" );
+          // execute on hold
+          //console.log( "hold" ); 
+        }
+      }, handler.holdingTime )
+
+    } );
+
+    this.element.addEventListener( "mousemove", function ( e ) {
+
+      handler.holding = false;
+      if ( handler.holdingTimer ) {
+        clearTimeout( handler.holdingTimer );
+      }
+
+      if ( ! handler.mouseDowned ) {
+        return;
+      }
+
+      e.preventDefault();
+
+      var x = e.screenX;
+      var y = e.screenY;
+
+      var distanceX = x - handler.lastPos.x;
+      var distanceY = y - handler.lastPos.y;
+
+      var newX = handler.element.offsetLeft + distanceX;
+      var newY = handler.element.offsetTop + distanceY;
+
+      if ( newX < 0  ) {
+        newX = 0;
+      }
+      if ( newY < 0  ) {
+        newY = 0;
+      }
+      handler.lastPos = {
+        x: x,
+        y: y
+      }
+
+      handler.dragging = true;
+      handler.home.evenAllZ( 0 );
+      handler.element.style.zIndex = 1;
+      handler.move( newX, newY );
+
+    }, true ); 
+
+    var finishDrag = function () {
+
+      if ( handler.dragging ) {
+        handler.data.x = handler.element.style.left.replace( /px/, "" );
+        handler.data.y = handler.element.style.top.replace( /px/, "" );
+        handler.home.update();
+      }
+
+      handler.mouseDowned = false;
+      handler.dragging = false;
+      handler.holding = false;
+      document.querySelector( "body" ).setAttribute( "class", "" );
+      if ( handler.holdingTimer ) {
+        clearTimeout( handler.holdingTimer );
+      }
+
+    }
+
+    this.container.addEventListener( "mouseup", function ( e ) {
+
+      if ( handler.mouseDowned ) {
+        if ( Math.abs( handler.startPos.x - e.screenX ) < handler.thresholdOfClick && Math.abs( handler.startPos.y - e.screenY ) < handler.thresholdOfClick ) {
+        // execute on click
+        handler.mouseDowned = false;
+        handler.dragging = false;
+        handler.holding = false;
+        window.location.href = handler.url;
+        }
+      }
+
+      finishDrag();
+
+    } );
+
+    this.container.addEventListener( "mouseleave", function ( e ) {
+      finishDrag();
+    } );
+
+    // context menu
+    this.element.addEventListener( "contextmenu", function ( e ) {
+      handler.mouseDowned = false;
+      handler.dragging = false;
+      handler.holding = false;
+      handler.home.selected = handler;
+      e.preventDefault();     
+      menu.popup( remote.getCurrentWindow() );    
+    }, false );
+
+    this.element.querySelector( ".shortcut-title-form form" ).addEventListener( "submit", function ( e ) {
+      e.preventDefault();
+      handler.data.title = this.querySelector( "input" ).value;
+      handler.element.querySelector( ".shortcut-title-form" ).style.display = "none";
+      handler.element.querySelector( ".shortcut-title" ).innerHTML = handler.data.title;
+      handler.element.querySelector( ".shortcut-title" ).style.display = "block";
+      handler.home.update();
+      handler.editing = false;
+    }, false )
+
+  },
+
+  move: function ( x, y ) {
+
+    if ( x !== undefined ) {
+      this.element.style.left = x + "px";
+    }
+    if ( y !== undefined ) {
+      this.element.style.top = y + "px";
+    }
+
+  },
+
+  rename: function () {
+    this.editing = true;
+    this.element.querySelector( ".shortcut-title" ).style.display = "none";
+    this.element.querySelector( ".shortcut-title-form" ).style.display = "block";
+  },
+
+  changeIcon: function () {
+    this.editing = true;
+    var handler = this;
+    Dialog.showOpenDialog( { defaultPath: Path.normalize( __dirname + "/icons" ), properties: [ 'openFile' ] }, function ( paths ){
+        if ( paths ) {
+          handler.data.icon = paths[ 0 ];
+          handler.element.querySelector( ".shortcut-icon" ).style.backgroundImage = "url(file://" + handler.data.icon.replace( /\\/g, "\\\\" ) + ")";
+          handler.home.update();
+          window.location.reload();
+        }
+      } );
+  },
+
+  remove: function () {
+    console.log( "remove:" + JSON.stringify( this.data ) );
+    this.container.removeChild( this.element );
+    this.home.remove( this );
+  }
+
+}
+
+// Main
+
+var remote = require( 'remote' );
+var Menu = remote.require( 'menu' );
+var MenuItem = remote.require( 'menu-item' );
+var Dialog = remote.require( 'dialog' );
+var Path = remote.require( 'path' );
+
+//set context menu
+var menu = new Menu();
+menu.append( new MenuItem( { 
+  label: 'Rename',
+  click: function() {  
+    if ( home.selected ) {
+      home.selected.rename();
+    }
+  }
+} ) );
+menu.append( new MenuItem( { 
+  label: 'Change Icon',
+  click: function() {  
+    if ( home.selected ) {
+      home.selected.changeIcon();
+    }
+  }
+} ) );
+menu.append( new MenuItem( {
+  type: "separator"
+} ) );
+menu.append( new MenuItem( { 
+  label: 'Remove',
+  click: function() {  
+    if ( home.selected ) {
+      home.selected.remove();
+    }
+  }
+} ) );
+
+var home;
+
+window.onFoul = function () {
+
+  home = new Home();
+
+  window.foul.send( "getShortcuts", "", function ( shortcuts ) { 
+    var keys = Object.keys( shortcuts );
+    for ( var i = 0; i < keys.length; i++ ) {
+      home.append( new Shortcut( {
+        home: home,
+        container: document.querySelector( "body" ),
+        template: document.querySelector( ".template-shortcut" ).innerHTML,
+        url: keys[ i ],
+        data: shortcuts[ keys[ i ] ]
+      } ) );
+    }
+  } );
+
+}
+
+</script>
+
+</body>
+</html>
