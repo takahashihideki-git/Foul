@@ -34,7 +34,18 @@ App.on( 'ready', function() {
   Menu.setApplicationMenu( menuBar );
 
   // set Shortcut Manager
-  shortcutManager = new ShortcutManager( __dirname + '/shortcut.json' );
+  //shortcutManager = new ShortcutManager( __dirname + '/shortcut.json' );
+  shortcutManager = new ShortcutManager( App.getPath( 'appData' ) + '/Foul/shortcut.json' );
+
+  //write shortcut file path info for webview.js
+  Fs.writeFile( __dirname + '/path.txt', App.getPath( 'appData' ) + '/Foul/shortcut.json', function ( err ) {
+    if (err) {
+      console.log( err );
+    }
+    else {
+      console.log( "write shortcut file path info" );
+    }
+  } );
 
   // and load the index.html of the app.
   mainWindow.loadUrl('file://' + __dirname + '/index.html');
@@ -158,6 +169,7 @@ menuBar = Menu.buildFromTemplate( [
 // Shortcut
 var ShortcutManager = function ( path ) {
   this.path = path;
+  this.shortcuts = new Object();
   this.initialize();
 }
 ShortcutManager.prototype = {
@@ -176,9 +188,6 @@ ShortcutManager.prototype = {
       else {
         if ( data ) {
           manager.shortcuts = JSON.parse( data );
-        }
-        else {
-          manager.shortcuts = new Object();
         }
       }
     } );

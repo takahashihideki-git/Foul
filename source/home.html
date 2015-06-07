@@ -417,7 +417,10 @@ window.onFoul = function () {
 
   home = new Home();
 
-  window.foul.send( "getShortcuts", "", function ( shortcuts ) { 
+  window.foul.send( "getShortcuts", "", function ( shortcuts ) {
+    if ( ! shortcuts ) {
+      return;
+    }
     var keys = Object.keys( shortcuts );
     for ( var i = 0; i < keys.length; i++ ) {
       home.append( new Shortcut( {

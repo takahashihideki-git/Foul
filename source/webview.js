@@ -6,7 +6,8 @@
 	}
 
 	var fs = require( 'fs' );
-	var shortcuts = JSON.parse( fs.readFileSync( __dirname + "/shortcut.json", "utf8" ) );
+	var shortcutFilePath = fs.readFileSync( __dirname + "/path.txt", "utf8" );
+	var shortcuts = JSON.parse( fs.readFileSync( shortcutFilePath, "utf8" ) );
 
 	if ( shortcuts[ window.location.href ] ) {
 		return
