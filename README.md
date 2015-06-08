@@ -1,5 +1,7 @@
 # Foul
 
+![Foul ホーム画面](https://raw.githubusercontent.com/wiki/takahashihideki-git/Foul/images/foulHome.png)
+
 Foul は、[Electron](http://electron.atom.io/) でつくられた Mac と Windows で動作する Web ブラウザーです。静的な HTML, CSS, Javascript ファイルのみで構成された SPA (Single Page Application) の可能性を最大限に引き出すために、一般的なWebブラウザとは異なるセキュリティポリシーの下で各種のリソースにアクセスします。
 
 1. Cross-Origin XMLHttpRequest
