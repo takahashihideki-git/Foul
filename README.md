@@ -1,5 +1,7 @@
 # Foul
 
+## スタティックな SPA をエンパワーする「反則」ブラウザー
+
 ![Foul ホーム画面](https://raw.githubusercontent.com/wiki/takahashihideki-git/Foul/images/foulHome.png)
 
 Foul は、[Electron](http://electron.atom.io/) でつくられた Mac と Windows で動作する Web ブラウザーです。静的な HTML, CSS, Javascript ファイルのみで構成された SPA (Single Page Application) の可能性を最大限に引き出すために、一般的なWebブラウザとは異なるセキュリティポリシーの下で各種のリソースにアクセスします。
@@ -32,5 +34,7 @@ Foul が、このような「反則」を敢えて犯すのは、信頼する特
 
 従来、このような「小さなアプリケーション」（ときには「使い捨てのアプリケーション」）を実現する場合でも、専用のWebサーバーを用意したり、それ自体をデスクトップアプリケーションとして実装する必要がありましたが、Foul があれば、 静的な HTML, CSS, Javascript ファイルを記述するだけで済むようになります。
 
-    
+## Download
+
+Mac 版とWindows 版のプレビルドのバイナリーは[リリースページ](https://github.com/takahashihideki-git/Foul/releases/)からダウンロードしてください。
 
