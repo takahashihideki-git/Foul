@@ -4,7 +4,7 @@
 
 ![Foul ホーム画面](https://raw.githubusercontent.com/wiki/takahashihideki-git/Foul/images/foulHome.png)
 
-Foul は、[Electron](http://electron.atom.io/) でつくられた Mac と Windows で動作する Web ブラウザーです。静的な HTML, CSS, Javascript ファイルのみで構成された SPA (Single Page Application) の可能性を最大限に引き出すために、一般的なWebブラウザとは異なるセキュリティポリシーの下で各種のリソースにアクセスします。
+Foul は、[Electron](http://electron.atom.io/) でつくられた Mac と Windows で動作する Web ブラウザーです。静的な HTML, CSS, Javascript ファイルのみで構成された SPA (Single Page Application) の可能性を最大限に引き出すために、一般的な Web ブラウザーとは異なるセキュリティポリシーの下で各種のリソースにアクセスします。
 
 1. Cross-Origin XMLHttpRequest
 
@@ -32,7 +32,7 @@ Foul は、[Electron](http://electron.atom.io/) でつくられた Mac と Windo
 
 Foul が、このような「反則」を敢えて犯すのは、信頼する特定の Single Page Web Application の利用に用途を限るのであれば、一般的な Web ブラウザーが前提にせざるをえない、悪意を隠し持った未知のリソースの存在を、ユーザーの自己責任において、無視しても差し支えはないと考えるからです。
 
-従来、このような「小さなアプリケーション」（ときには「使い捨てのアプリケーション」）を実現する場合でも、専用のWebサーバーを用意したり、それ自体をデスクトップアプリケーションとして実装する必要がありましたが、Foul があれば、 静的な HTML, CSS, Javascript ファイルを記述するだけで済むようになります。
+従来、このような「小さなアプリケーション」（ときには「使い捨てのアプリケーション」）を実現する場合でも、専用の Web サーバーを用意したり、それ自体をデスクトップアプリケーションとして実装する必要がありましたが、Foul があれば、 静的な HTML, CSS, Javascript ファイルを記述するだけで済むようになります。
 
 ## Download
 
