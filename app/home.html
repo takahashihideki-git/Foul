@@ -192,7 +192,7 @@ Shortcut.prototype = {
     this.element.querySelector( ".shortcut-title" ).innerHTML = this.data.title;
     this.element.querySelector( ".shortcut-title-form input" ).value = this.data.title;
     if ( this.data.icon ) {
-      this.element.querySelector( ".shortcut-icon" ).style.backgroundImage = "url(file://" + this.data.icon.replace( /\\/g, "\\\\" ) + ")";
+      this.element.querySelector( ".shortcut-icon" ).style.backgroundImage = "url(file://" + this.data.icon.replace( /\\/g, "\\\\" ).replace( / /g, "\\ " ) + ")";
     }
     this.move( this.data.x, this.data.y  );
 
