@@ -26,7 +26,7 @@ Foul は、[Electron](http://electron.atom.io/) でつくられた Mac と Windo
 
 あるいは、
 
-ローカルディスクに保存されている markdownファイルの編集とプレビューを行う[小さなアプリケーション](https://dl.dropboxusercontent.com/u/223789/dev/markdownEditor.html)（[marked.js](https://github.com/chjj/marked) + 約150行の静的なHTMLファイル）。
+ローカルディスクに保存されている markdown  ファイルの編集とプレビューを行う[小さなアプリケーション](https://dl.dropboxusercontent.com/u/223789/dev/markdownEditor.html)（[marked.js](https://github.com/chjj/marked) + 約150行の静的なHTMLファイル）。
 
 これらは、一般的な Web ブラウザーではセキュリティ上の制約から正しく動作しません。しかし、Foul ではユーザーと開発者の期待どおりに動作します。
 
