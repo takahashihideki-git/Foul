@@ -771,7 +771,7 @@ Foul.prototype = {
             size: stat.size,
             accessTime: ( new Date( Gv.nodeUtil.inspect( stat.atime ) ) ).getTime(), 
             modifiedTime: ( new Date( Gv.nodeUtil.inspect( stat.mtime ) ) ).getTime(), 
-            fhangeTime: ( new Date( Gv.nodeUtil.inspect( stat.ctime ) ) ).getTime(), 
+            changeTime: ( new Date( Gv.nodeUtil.inspect( stat.ctime ) ) ).getTime(), 
             birthTime: ( new Date( Gv.nodeUtil.inspect( stat.birthtime ) ) ).getTime() 
           } );
         } )() }
