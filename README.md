@@ -34,6 +34,13 @@ Foul が、このような「反則」を敢えて犯すのは、信頼する特
 
 従来、このような「小さなアプリケーション」（ときには「使い捨てのアプリケーション」）を実現する場合でも、専用の Web サーバーを用意したり、それ自体をデスクトップアプリケーションとして実装する必要がありましたが、Foul があれば、 静的な HTML, CSS, Javascript ファイルを記述するだけで済むようになります。
 
+## Document
+
+ローカルファイルシステムへアクセスする方法については、下記のドキュメントを参照してください。
+
+* https://github.com/takahashihideki-git/Foul/wiki/window.fileSystem
+* https://github.com/takahashihideki-git/Foul/wiki/window.onFoul
+
 ## Download
 
 Mac 版とWindows 版のプレビルドのバイナリーは[リリースページ](https://github.com/takahashihideki-git/Foul/releases/)からダウンロードしてください。
