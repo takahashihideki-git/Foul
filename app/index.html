@@ -623,10 +623,10 @@ Foul.prototype = {
 
     Gv.fs.exists( path, function ( exists ) {
       if ( exists ) {
-        foul.webview.send( callback, { status: 1, path: path, content: 1 } );
+        foul.webview.send( callback, { status: 1, path: path, content: true } );
       }
       else {
-        foul.webview.send( callback, { status: 1, path: path, content: 0 } );
+        foul.webview.send( callback, { status: 1, path: path, content: false } );
       }
     } );
 
