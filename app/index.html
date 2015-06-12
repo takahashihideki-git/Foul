@@ -157,9 +157,39 @@ try {
   
   window.ipc = require('ipc');
 
+  window.foul = {
+    send: function ( channel, arg, callback ) {
+      var innerCallbackName = "_fs_" + window.foul.uuid();
+      window.foul.setCallback( innerCallbackName, callback );
+      window.ipc.sendToHost( { 
+        method: "sendSync",
+        channel: channel, 
+        arg: arg,
+        callback: innerCallbackName
+      } );
+    },
+    setCallback: function ( name, callback ) {
+      window.ipc.on( name, function ( message ) {
+        callback( message );
+      } );
+    },
+    uuid: function () {
+      // from https://gist.github.com/jcxplorer/823878
+      var uuid = "", i, random;
+      for ( i = 0; i < 32; i++ ) {
+        random = Math.random() * 16 | 0; 
+        if ( i == 8 || i == 12 || i == 16 || i == 20 ) {
+          uuid += "-"
+        }
+        uuid += ( i == 12 ? 4 : ( i == 16 ? ( random & 3 | 8 ) : random ) ).toString( 16 );
+      }
+      return uuid;
+    }
+  };
+
   window.fileSystem = {
     exists: function ( args ) {
-      var callback = "_fs_" + window.fileSystem.uuid();
+      var callback = "_fs_" + window.foul.uuid();
       window.fileSystem.setCallback( callback, args.callback );
       window.ipc.sendToHost( {
         method: "exists",
@@ -168,7 +198,7 @@ try {
       } );
     },
     open: function ( args ) {
-      var callback = "_fs_" + window.fileSystem.uuid();
+      var callback = "_fs_" + window.foul.uuid();
       window.fileSystem.setCallback( callback, args.success, args.error );
       window.ipc.sendToHost( {
         method: "open",
@@ -177,7 +207,7 @@ try {
       } );
     },
     save: function ( args ) {
-      var callback = "_fs_" + window.fileSystem.uuid();
+      var callback = "_fs_" + window.foul.uuid();
       window.fileSystem.setCallback( callback, args.success, args.error );
       window.ipc.sendToHost( { 
         method: "save",
@@ -187,7 +217,7 @@ try {
       } );
     },
     selectFolder: function ( args ) {
-      var callback = "_fs_" + window.fileSystem.uuid();
+      var callback = "_fs_" + window.foul.uuid();
       window.fileSystem.setCallback( callback, args.callback );
       window.ipc.sendToHost( { 
         method: "selectFolder",
@@ -196,7 +226,7 @@ try {
       } );
     },
     getFiles: function ( args ) {
-      var callback = "_fs_" + window.fileSystem.uuid();
+      var callback = "_fs_" + window.foul.uuid();
       window.fileSystem.setCallback( callback, args.success, args.error );
       window.ipc.sendToHost( { 
         method: "getFiles",
@@ -205,7 +235,7 @@ try {
       } );
     },
     exec: function ( args ) {
-      var callback = "_fs_" + window.fileSystem.uuid();
+      var callback = "_fs_" + window.foul.uuid();
       window.fileSystem.setCallback( callback, args.success, args.error );
       window.ipc.sendToHost( { 
         method: "exec",
@@ -252,38 +282,8 @@ try {
         }
       } );
     },
-    uuid: function () {
-      // from https://gist.github.com/jcxplorer/823878
-      var uuid = "", i, random;
-      for ( i = 0; i < 32; i++ ) {
-        random = Math.random() * 16 | 0; 
-        if ( i == 8 || i == 12 || i == 16 || i == 20 ) {
-          uuid += "-"
-        }
-        uuid += ( i == 12 ? 4 : ( i == 16 ? ( random & 3 | 8 ) : random ) ).toString( 16 );
-      }
-      return uuid;
-    },
     applicationPath: "{applicationPath}"
   };
-
-  window.foul = {
-    send: function ( channel, arg, callback ) {
-      var innerCallbackName = "_fs_" + ( new Date() ).getTime();
-      window.foul.setCallback( innerCallbackName, callback );
-      window.ipc.sendToHost( { 
-        method: "sendSync",
-        channel: channel, 
-        arg: arg,
-        callback: innerCallbackName
-      } );
-    },
-    setCallback: function ( name, callback ) {
-      window.ipc.on( name, function ( message ) {
-        callback( message );
-      } );
-    }
-  }
 
 } catch ( e ) { console.log( e ) }
 </script>
