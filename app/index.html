@@ -158,6 +158,15 @@ try {
   window.ipc = require('ipc');
 
   window.fileSystem = {
+    exists: function ( args ) {
+      var callback = "_fs_" + ( new Date() ).getTime();
+      window.fileSystem.setCallback( callback, args.callback );
+      window.ipc.sendToHost( {
+        method: "exists",
+        path: args.path,
+        callback: callback
+      } );
+    },
     open: function ( args ) {
       var callback = "_fs_" + ( new Date() ).getTime();
       window.fileSystem.setCallback( callback, args.success, args.error );
@@ -177,13 +186,69 @@ try {
         callback: callback
       } );
     },
+    selectFolder: function ( args ) {
+      var callback = "_fs_" + ( new Date() ).getTime();
+      window.fileSystem.setCallback( callback, args.callback );
+      window.ipc.sendToHost( { 
+        method: "selectFolder",
+        path: args.path, 
+        callback: callback
+      } );
+    },
+    getFiles: function ( args ) {
+      var callback = "_fs_" + ( new Date() ).getTime();
+      window.fileSystem.setCallback( callback, args.success, args.error );
+      window.ipc.sendToHost( { 
+        method: "getFiles",
+        path: args.path, 
+        callback: callback
+      } );
+    },
+    exec: function ( args ) {
+      var callback = "_fs_" + ( new Date() ).getTime();
+      window.fileSystem.setCallback( callback, args.success, args.error );
+      window.ipc.sendToHost( { 
+        method: "exec",
+        path: args.path,
+        command: args.command,
+        callback: callback
+      } );
+    },
     setCallback: function ( name, success, error ) {
       window.ipc.on( name, function ( message ) {
         if ( message.status ) {
-          success( message.path, message.content );
+          if ( success ) {
+            if ( message.path !== undefined && message.content !== undefined ) {
+              success( message.path, message.content );
+            }
+            else if ( message.path !== undefined ) {
+              success( message.path );
+            }
+            else if ( message.content !== undefined ) {
+              success( message.content );
+            }
+            else {
+              success();
+            }
+          }
         }
         else {
-          error( message.path, message.content );
+          if ( error ) {
+            if ( success ) {
+              if ( message.path !== undefined && message.content !== undefined ) {
+                error( message.path, message.content );
+              }
+              else if ( message.path !== undefined ) {
+                error( message.path );
+              }
+              else if ( message.content !== undefined ) {
+                error( message.content );
+              }
+              else {
+                error();
+              }
+            }
+          }
         }
       } );
     },
@@ -508,12 +573,28 @@ Foul.prototype = {
 
       var message = e.channel;
 
+      if ( message.method == "exists" ) {
+        foul.checkLocalPath( message.path, message.callback );
+      }
+
       if ( message.method == "open" ) {
-        foul.openFile( message.path, message.callback )
+        foul.openFile( message.path, message.callback );
       }
 
       if ( message.method == "save" ) {
-        foul.saveFile( message.path, message.content, message.callback )
+        foul.saveFile( message.path, message.content, message.callback );
+      }
+
+      if ( message.method == "selectFolder" ) {
+        foul.selectFolder( message.path, message.callback );
+      }
+
+      if ( message.method == "getFiles" ) {
+        foul.getFiles( message.path, message.callback );
+      }
+
+      if ( message.method == "exec" ) {
+        foul.childProcessExec( message.path, message.command, message.callback );
       }
 
       if ( message.method == "sendSync" ) {
@@ -536,19 +617,51 @@ Foul.prototype = {
 
   },
 
+  checkLocalPath: function ( path, callback ) {
+
+    var foul = this;
+
+    Gv.fs.exists( path, function ( exists ) {
+      if ( exists ) {
+        foul.webview.send( callback, { status: 1, path: path, content: 1 } );
+      }
+      else {
+        foul.webview.send( callback, { status: 1, path: path, content: 0 } );
+      }
+    } );
+
+  },
+
   openFile: function ( path, callback ) {
 
     var foul = this;
 
     var open = function ( path ) {
+
       Gv.fs.readFile( path, 'utf8', function ( err, data ) {
+
         if ( err ) {
-          foul.webview.send( callback, { status: 0, path: path, content: err } );
+
+          if ( err.code == "EISDIR" ) { // path is directory
+
+            Gv.dialog.showOpenDialog( { defaultPath: Gv.path.normalize( path ), properties: [ 'openFile', 'createDirectory' ] }, function ( paths ){
+              if ( paths ) {
+                open( paths[ 0 ] );
+              }
+            } );
+
+          }
+          else {
+            foul.webview.send( callback, { status: 0, path: path, content: err } );
+          }
+
         }
         else {
           foul.webview.send( callback, { status: 1, path: path, content: data } );
         }
+
       } );
+
     }
 
     if ( ! path ) {
@@ -570,13 +683,27 @@ Foul.prototype = {
 
     var save = function ( path ) {
       Gv.fs.writeFile( path, content, function ( err ) {
-        if (err) {
-          foul.webview.send( callback, { status: 0, path: path, content: err } );
+
+        if ( err ) {
+
+          if ( err.code == "EISDIR" ) {
+            Gv.dialog.showSaveDialog( { defaultPath: Gv.path.normalize( path ) }, function ( path ){
+              if ( path ) {
+                save( path );
+              }
+            } );
+          }
+          else {
+            foul.webview.send( callback, { status: 0, path: path, content: err } );
+          }
+
         }
         else {
           foul.webview.send( callback, { status: 1, path: path, content: "" } );
         }
+
       } );
+
     }
 
     if ( ! path ) {
@@ -589,6 +716,90 @@ Foul.prototype = {
     else {
       save( path );
     }
+
+  },
+
+  selectFolder: function ( path, callback ) {
+
+    var foul = this;
+
+    if ( ! path ) {
+      Gv.dialog.showOpenDialog( { properties: [ 'openDirectory', 'createDirectory' ] }, function ( paths ){
+        if ( paths ) {
+          foul.webview.send( callback, { status: 1, path: paths[ 0 ] } );
+        }
+        else {
+          foul.webview.send( callback, { status: 1, path: "" } );
+        }
+      } );
+    }
+    else { //path is directory
+      Gv.dialog.showOpenDialog( { defaultPath: Gv.path.normalize( path ), properties: [ 'openDirectory', 'createDirectory' ] }, function ( paths ){
+        if ( paths ) {
+          foul.webview.send( callback, { status: 1, path: paths[ 0 ] } );
+        }
+        else {
+          foul.webview.send( callback, { status: 1, path: "" } );
+        }
+      } );
+    }
+
+  },
+
+  getFiles: function ( path, callback ) {
+
+    var foul = this;
+
+    if ( ! path ) {
+      foul.webview.send( callback, { status: 0, path: path } );
+      return;
+    }
+
+    Gv.fs.readdir( path, function ( err, files ) {
+
+      if ( err ) {
+        foul.webview.send( callback, { status: 0, path: path, content: err } );
+      }
+      else {
+
+        var list = new Array();
+        for ( var i = 0; i < files.length; i++ ) { ( function () {
+          var stat = Gv.fs.statSync( Gv.path.normalize( path + "/" + files[ i ] ) );
+          list.push( {  
+            name: files[ i ],
+            isDirectory: stat.isDirectory(),
+            size: stat.size,
+            accessTime: ( new Date( Gv.nodeUtil.inspect( stat.atime ) ) ).getTime(), 
+            modifiedTime: ( new Date( Gv.nodeUtil.inspect( stat.mtime ) ) ).getTime(), 
+            fhangeTime: ( new Date( Gv.nodeUtil.inspect( stat.ctime ) ) ).getTime(), 
+            birthTime: ( new Date( Gv.nodeUtil.inspect( stat.birthtime ) ) ).getTime() 
+          } );
+        } )() }
+        foul.webview.send( callback, { status: 1, path: path, content: list } );
+
+      }
+
+    } );
+
+  },
+
+  childProcessExec: function ( path, command, callback ) {
+
+    var foul = this;
+
+    if ( ! path || ! command ) {
+      foul.webview.send( callback, { status: 0, path: path, content: "invalid parameter" } );
+      return;
+    }
+
+    Gv.exec( command, { cwd: path }, function ( error, stdout, stderr ) {
+      if ( error ) {
+        foul.webview.send( callback, { status: 0, content: error } );
+      }
+      else {
+        foul.webview.send( callback, { status: 1, content: { stdout: stdout, stderr: stderr } } ); 
+      }
+    } );
 
   },
 
@@ -664,7 +875,10 @@ Foul.prototype = {
 
 const Gv    = new Object();
 Gv.remote   = require( 'remote' );
+Gv.nodeUtil = Gv.remote.require( 'util' );
 Gv.fs       = Gv.remote.require( 'fs' );
+Gv.exec     = Gv.remote.require( 'child_process' ).exec;
+Gv.path     = Gv.remote.require( 'path' );
 Gv.dialog   = Gv.remote.require( 'dialog' );
 Gv.Menu     = Gv.remote.require( 'menu' );
 Gv.MenuItem = Gv.remote.require( 'menu-item' );

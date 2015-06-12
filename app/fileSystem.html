@@ -51,7 +51,7 @@ var open = function () {
 			document.querySelector( "textarea" ).value = data;
 		},
 		error: function ( path, data ) {
-			alert( path + " " + data );
+			alert( path + " " + JSON.stringify( data ) );
 		}
 	} );
 
@@ -68,8 +68,7 @@ var save = function ( path, content ) {
         alert( path + " saved." );
   		},
   		error: function ( path, data ) {
-
-  			alert( path + " " + data );
+        alert( path + " " + JSON.stringify( data ) );
   		}
   	} );
 }
