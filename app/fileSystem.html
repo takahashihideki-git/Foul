@@ -25,6 +25,11 @@ h1 {
 <form>
 
 	<p>
+    <select class="encoding">
+      <option value="">UTF8</option>
+      <option value="EUCJP">EUCJP</option>
+      <option value="SJIS">SJIS</option>
+    </select>
 		<input type="button" class="open" value="open">
     <input type="button" class="save" value="save">
     <input type="button" class="saveAs" value="save as ...">
@@ -52,7 +57,8 @@ var open = function () {
 		},
 		error: function ( path, data ) {
 			alert( path + " " + JSON.stringify( data ) );
-		}
+		},
+    encoding: document.querySelector( ".encoding" ).value
 	} );
 
 }
@@ -69,7 +75,8 @@ var save = function ( path, content ) {
   		},
   		error: function ( path, data ) {
         alert( path + " " + JSON.stringify( data ) );
-  		}
+  		},
+      encoding: document.querySelector( ".encoding" ).value
   	} );
 }
 

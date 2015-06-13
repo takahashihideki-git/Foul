@@ -203,7 +203,8 @@ try {
       window.ipc.sendToHost( {
         method: "open",
         path: args.path,
-        callback: callback
+        callback: callback,
+        encoding: args.encoding
       } );
     },
     save: function ( args ) {
@@ -213,7 +214,8 @@ try {
         method: "save",
         path: args.path, 
         content: args.content,
-        callback: callback
+        callback: callback,
+        encoding: args.encoding  
       } );
     },
     selectFolder: function ( args ) {
@@ -241,7 +243,8 @@ try {
         method: "exec",
         path: args.path,
         command: args.command,
-        callback: callback
+        callback: callback,
+        encoding: args.encoding
       } );
     },
     setCallback: function ( name, success, error ) {
@@ -282,6 +285,7 @@ try {
         }
       } );
     },
+    encoding: require( 'encoding' ),
     applicationPath: "{applicationPath}"
   };
 
@@ -590,11 +594,11 @@ Foul.prototype = {
       }
 
       if ( message.method == "open" ) {
-        foul.openFile( message.path, message.callback );
+        foul.openFile( message.path, message.callback, message.encoding );
       }
 
       if ( message.method == "save" ) {
-        foul.saveFile( message.path, message.content, message.callback );
+        foul.saveFile( message.path, message.content, message.callback, message.encoding );
       }
 
       if ( message.method == "selectFolder" ) {
@@ -606,7 +610,7 @@ Foul.prototype = {
       }
 
       if ( message.method == "exec" ) {
-        foul.childProcessExec( message.path, message.command, message.callback );
+        foul.childProcessExec( message.path, message.command, message.callback, message.encoding );
       }
 
       if ( message.method == "sendSync" ) {
@@ -644,13 +648,15 @@ Foul.prototype = {
 
   },
 
-  openFile: function ( path, callback ) {
+  openFile: function ( path, callback, encoding ) {
 
     var foul = this;
 
+    var charset = encoding ? null : "utf8";
+
     var open = function ( path ) {
 
-      Gv.fs.readFile( path, 'utf8', function ( err, data ) {
+      Gv.fs.readFile( path, { encoding: charset }, function ( err, data ) {
 
         if ( err ) {
 
@@ -668,7 +674,10 @@ Foul.prototype = {
           }
 
         }
-        else {
+        else {          
+          if ( encoding ) {
+            data = Gv.encoding.codeToString( Gv.encoding.convert( data, { from: encoding, to: "UNICODE" } ) );
+          }
           foul.webview.send( callback, { status: 1, path: path, content: data } );
         }
 
@@ -689,12 +698,25 @@ Foul.prototype = {
 
   },
 
-  saveFile: function ( path, content, callback ) {
+  saveFile: function ( path, content, callback, encoding ) {
 
     var foul = this;
 
+    var charset = encoding ? null : "utf8";
+
+    if ( encoding ) {
+
+      var converted = Gv.encoding.convert( 
+        content.split( "" ).map( function ( c ) { return c.charCodeAt( 0 ) } ), 
+        { from: "UNICODE", to: encoding } 
+      );
+
+      content = new Gv.remote.getGlobal( "Buffer" )( converted );
+
+    }
+
     var save = function ( path ) {
-      Gv.fs.writeFile( path, content, function ( err ) {
+      Gv.fs.writeFile( path, content, { encoding: charset },　function ( err ) {
 
         if ( err ) {
 
@@ -795,21 +817,46 @@ Foul.prototype = {
 
   },
 
-  childProcessExec: function ( path, command, callback ) {
+  childProcessExec: function ( path, command, callback, encoding ) {
 
     var foul = this;
+
+    var charset = encoding ? null : "utf8";
 
     if ( ! path || ! command ) {
       foul.webview.send( callback, { status: 0, path: path, content: "invalid parameter" } );
       return;
     }
 
-    Gv.exec( command, { cwd: path }, function ( error, stdout, stderr ) {
+    Gv.exec( command, { cwd: path, encoding: charset }, function ( error, stdout, stderr ) {
       if ( error ) {
         foul.webview.send( callback, { status: 0, content: error } );
       }
       else {
+
+        if ( encoding ) {
+
+          if ( stdout ) {
+            stdout = Gv.encoding.codeToString( 
+              Gv.encoding.convert( 
+                stdout, 
+                { from: encoding, to: "UNICODE" } 
+              ) 
+            );
+          }
+          if ( stderr ) {
+            stderr = Gv.encoding.codeToString( 
+              Gv.encoding.convert( 
+                stderr, 
+                { from: encoding, to: "UNICODE" } 
+              ) 
+            );
+          }
+
+        }
+
         foul.webview.send( callback, { status: 1, content: { stdout: stdout, stderr: stderr } } ); 
+
       }
     } );
 
@@ -889,6 +936,7 @@ const Gv    = new Object();
 Gv.remote   = require( 'remote' );
 Gv.nodeUtil = Gv.remote.require( 'util' );
 Gv.fs       = Gv.remote.require( 'fs' );
+Gv.encoding = Gv.remote.require( 'encoding' );
 Gv.exec     = Gv.remote.require( 'child_process' ).exec;
 Gv.path     = Gv.remote.require( 'path' );
 Gv.dialog   = Gv.remote.require( 'dialog' );
