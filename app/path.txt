@@ -1,1 +1,1 @@
-/Users/takahashihideki/Library/Application Support/Foul/shortcut.json
+C:\Users\takahashihideki\AppData\Roaming/Foul/shortcut.json

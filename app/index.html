@@ -285,7 +285,7 @@ try {
         }
       } );
     },
-    encoding: require( 'encoding' ),
+    encoding: require( require( 'path' ).resolve( '{applicationPath}' + '/node_modules/encoding' ) ),
     applicationPath: "{applicationPath}"
   };
 
@@ -626,7 +626,7 @@ Foul.prototype = {
 
     if ( url.match( /^file:\/\// ) || Gv.ipc.sendSync( "isRegistered", { url: url } ) ) {
 
-      this.webview.executeJavaScript( this.extensionCode.replace( /{applicationPath}/, __dirname.replace( /\\/g, "\\\\" ) ) );
+      this.webview.executeJavaScript( this.extensionCode.replace( /{applicationPath}/g, __dirname.replace( /\\/g, "\\\\" ) ) );
       this.webview.executeJavaScript( "if ( window.onFoul ){ window.onFoul() }" );
 
     }
