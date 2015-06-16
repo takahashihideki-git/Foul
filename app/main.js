@@ -14,12 +14,9 @@ var mainWindow = null;
 
 // Quit when all windows are closed.
 App.on( 'window-all-closed', function() {
-  //if ( process.platform != 'darwin' ) {
-    if ( shortcutManager ) {
-      shortcutManager.saveSync();
-    }
-    App.quit();
-  //} 
+  // if ( process.platform != 'darwin' ) {
+  quit();
+  // } 
 } );
 
 // This method will be called when Electron has done everything
@@ -142,6 +139,16 @@ menuBar = Menu.buildFromTemplate( [
           BrowserWindow.getFocusedWindow().webContents.executeJavaScript( "Gv.foul.openDevTools()" );
         },
         accelerator: "Alt+CommandOrControl+I"
+      },
+      {
+        type: "separator"
+      },
+      {
+        label: "Quit",
+        click: function() {
+          quit();
+        },
+        accelerator: "CommandOrControl+Q"
       }
     ]
   },
@@ -165,6 +172,14 @@ menuBar = Menu.buildFromTemplate( [
     ]
   }
 ] );
+
+// Quit
+var quit = function () {
+  if ( shortcutManager ) {
+    shortcutManager.saveSync();
+  }
+  App.quit();
+}
 
 // Shortcut
 var ShortcutManager = function ( path ) {
