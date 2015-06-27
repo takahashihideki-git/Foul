@@ -530,7 +530,8 @@ Foul.prototype = {
     foul.webview.ondrop = function ( e ) {
       e.preventDefault();
       var file = e.dataTransfer.files[ 0 ];
-      foul.webview.executeJavaScript( "window.location.href='" + file.path.replace( /\\/g, "\\\\" ) + "'" );
+console.log( file.path );      
+      foul.webview.executeJavaScript( "window.location.href='file://" + file.path.replace( /\\/g, "\\\\" ) + "'" );
       return false;
     }
 
