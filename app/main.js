@@ -14,9 +14,9 @@ var mainWindow = null;
 
 // Quit when all windows are closed.
 App.on( 'window-all-closed', function() {
-  // if ( process.platform != 'darwin' ) {
-  quit();
-  // } 
+  if ( process.platform != 'darwin' ) {
+    quit();
+  } 
 } );
 
 // This method will be called when Electron has done everything
@@ -24,41 +24,10 @@ App.on( 'window-all-closed', function() {
 var shortcutManager;
 App.on( 'ready', function() {
 
-  // Create the browser window.
-  mainWindow = new BrowserWindow( { width: 1024, height: 768 } );
+  // Create Main Window
+  createMainWindow();
 
-  // set Menu Bar
-  Menu.setApplicationMenu( menuBar );
-
-  // set Shortcut Manager
-  //shortcutManager = new ShortcutManager( __dirname + '/shortcut.json' );
-  shortcutManager = new ShortcutManager( App.getPath( 'appData' ) + '/Foul/shortcut.json' );
-
-  //write shortcut file path info for webview.js
-  Fs.writeFile( __dirname + '/path.txt', App.getPath( 'appData' ) + '/Foul/shortcut.json', function ( err ) {
-    if (err) {
-      console.log( err );
-    }
-    else {
-      console.log( "write shortcut file path info" );
-    }
-  } );
-
-  // and load the index.html of the app.
-  mainWindow.loadUrl('file://' + __dirname + '/index.html');
-
-  // Open the devtools.
-  // mainWindow.openDevTools();
-
-  // Emitted when the window is closed.
-  mainWindow.on( 'closed', function() {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    mainWindow = null;
-  } );
-
-  // Ipc Listener
+  // Set Ipc Listener
   Ipc.on( "isRegistered", function ( event, arg ) {
       event.returnValue = shortcutManager.isRegistered( arg.url );
   } );
@@ -85,6 +54,44 @@ App.on( 'ready', function() {
 
 } );
 
+var createMainWindow = function () {
+
+  // Create the browser window.
+  mainWindow = new BrowserWindow( { width: 1024, height: 768 } );
+
+  // set Menu Bar
+  Menu.setApplicationMenu( menuBar );
+
+  // set Shortcut Manager
+  //shortcutManager = new ShortcutManager( __dirname + '/shortcut.json' );
+  shortcutManager = new ShortcutManager( App.getPath( 'appData' ) + '/Foul/shortcut.json' );
+
+  //write shortcut file path info for webview.js
+  Fs.writeFile( __dirname + '/path.txt', App.getPath( 'appData' ) + '/Foul/shortcut.json', function ( err ) {
+    if (err) {
+      console.log( err );
+    }
+    else {
+      console.log( "write shortcut file path info" );
+    }
+  } );
+
+  // and load the index.html of the app.
+  mainWindow.loadUrl('file://' + __dirname + '/index.html');
+
+  // Open the devtools.
+  mainWindow.openDevTools();
+
+  // Emitted when the window is closed.
+  mainWindow.on( 'closed', function() {
+    // Dereference the window object, usually you would store windows
+    // in an array if your app supports multi windows, this is the time
+    // when you should delete the corresponding element.
+    mainWindow = null;
+  } );
+
+}
+
 // Create Menu Bar
 var menuBar = new Menu();
 menuBar = Menu.buildFromTemplate( [
@@ -94,29 +101,41 @@ menuBar = Menu.buildFromTemplate( [
       {
         label: "Home",
         click: function () {
-          var url = "file://" + __dirname + "/home.html";
-          BrowserWindow.getFocusedWindow().webContents.executeJavaScript( "Gv.foul.loadUrl('" + url.replace( /\\/g, "\\\\" ) + "')" );
+          var window = BrowserWindow.getFocusedWindow();
+          if ( window ) {
+            var url = "file://" + __dirname + "/home.html";
+            window.webContents.executeJavaScript( "Gv.foul.loadUrl('" + url.replace( /\\/g, "\\\\" ) + "')" );
+          }
         },
         accelerator: "Shift+CommandOrControl+H"
       },
       {
         label: "Back",
         click: function () {
-          BrowserWindow.getFocusedWindow().webContents.executeJavaScript( "Gv.foul.historyBack()" );
+          var window = BrowserWindow.getFocusedWindow();
+          if ( window ) {
+            window.webContents.executeJavaScript( "Gv.foul.historyBack()" );
+          }
         },
         accelerator: "CommandOrControl+Left"
       },
       {
         label: "Forward",
         click: function () {
-          BrowserWindow.getFocusedWindow().webContents.executeJavaScript( "Gv.foul.historyForward()" );
+          var window = BrowserWindow.getFocusedWindow();
+          if ( window ) {
+            window.webContents.executeJavaScript( "Gv.foul.historyForward()" );
+          }
         },
         accelerator: "CommandOrControl+Right"
       },
       {
         label: "Reload",
         click: function () {
-          BrowserWindow.getFocusedWindow().webContents.executeJavaScript( "Gv.foul.refresh()" );
+          var window = BrowserWindow.getFocusedWindow();
+          if ( window ) {
+            window.webContents.executeJavaScript( "Gv.foul.refresh()" );
+          }
         },
         accelerator: "CommandOrControl+R"
       },
@@ -126,7 +145,13 @@ menuBar = Menu.buildFromTemplate( [
       {
         label: "New Window",
         click: function() {
-          BrowserWindow.getFocusedWindow().webContents.executeJavaScript( "Gv.foul.newWindow()" );
+          var window = BrowserWindow.getFocusedWindow();
+          if ( window ) {
+            window.webContents.executeJavaScript( "Gv.foul.newWindow()" );
+          }
+          else {
+            createMainWindow();
+          }
         },
         accelerator: "CommandOrControl+N"
       },
@@ -136,7 +161,10 @@ menuBar = Menu.buildFromTemplate( [
       {
         label: "Developer Tools",
         click: function() {
-          BrowserWindow.getFocusedWindow().webContents.executeJavaScript( "Gv.foul.openDevTools()" );
+          var window = BrowserWindow.getFocusedWindow();
+          if ( window ) {
+            window.webContents.executeJavaScript( "Gv.foul.openDevTools()" );
+          }
         },
         accelerator: "Alt+CommandOrControl+I"
       },
