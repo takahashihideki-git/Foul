@@ -99,6 +99,19 @@ menuBar = Menu.buildFromTemplate( [
     label: "Menu",
     submenu: [
       {
+        label: "About Foul",
+        click: function () {
+          var window = BrowserWindow.getFocusedWindow();
+          if ( window ) {
+            var url = "file://" + __dirname + "/about.html";
+            window.webContents.executeJavaScript( "Gv.foul.loadUrl('" + url.replace( /\\/g, "\\\\" ) + "')" );
+          }
+        }
+      },
+      {
+        type: "separator"
+      },
+      {
         label: "Home",
         click: function () {
           var window = BrowserWindow.getFocusedWindow();
@@ -178,25 +191,6 @@ menuBar = Menu.buildFromTemplate( [
         },
         accelerator: "CommandOrControl+Q"
       }
-    ]
-  },
-  {
-    label: "Example",
-    submenu: [
-      {
-        label: "window.fileSystem",
-        click: function () {
-          var url = "file://" + __dirname + "/fileSystem.html";
-          BrowserWindow.getFocusedWindow().webContents.executeJavaScript( "Gv.foul.loadUrl('" + url.replace( /\\/g, "\\\\" ) + "')" );
-        }
-      },
-      {
-        label: "Cross-Origin XMLHttpRequest",
-        click: function () {
-          var url = "file://" + __dirname + "/crossDomain.html";
-          BrowserWindow.getFocusedWindow().webContents.executeJavaScript( "Gv.foul.loadUrl('" + url.replace( /\\/g, "\\\\" ) + "')" );
-        }
-      },
     ]
   }
 ] );

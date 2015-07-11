@@ -1,0 +1,88 @@
+  <!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Foul</title>
+<style>
+html, body {
+  height: 100%;
+}
+body {
+  font-family: "Helvetica Neue", "Arial", sans-serif;
+  text-align: center;
+  padding: 5em;
+  color: #666;
+  background: -webkit-linear-gradient(top, #7d7e7d 0%,#0e0e0e 100%);
+}
+.emblem {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  margin: 0 auto;
+}
+.emblem-inner {
+  position: absolute;
+  top:50%;
+  width: 100%;
+  height: 50%;
+  border-top: 1px solid #666;
+}
+.emblem-symbol {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:url( "foul.png" );
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.1;
+}
+h3 {
+  font-size: 200%;
+}
+a {
+  color: #666;
+}
+</style>
+</head>
+<body>
+
+<div class="emblem">
+  <div class="emblem-inner"></div>
+  <div class="emblem-symbol"></div>
+</div>
+
+<h3>Foul <span class="version"></span> on <a href="http://electron.atom.io/">Electron</a></h3>
+
+<p>with</p>
+
+<p>
+  <a href="https://github.com/google/material-design-icons">Material design icons</a><br>
+  <a href="https://github.com/polygonplanet/encoding.js">encoding.js</a>
+</p>
+
+<script>
+
+var PATH = require( 'path' )
+
+window.onFoul = function () {
+
+  window.fileSystem.open( {
+    path: __dirname + PATH.sep + "package.json",
+    success: function ( path, content ) {
+      var package = JSON.parse( content );
+      document.querySelector( ".version" ).innerHTML = package.version;
+    },
+    error: function ( path, error ) {
+        console.log( path );
+        console.log( error );
+    }
+  } );
+
+}
+
+</script>
+
+</body>
+</html>
