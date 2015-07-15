@@ -47,3 +47,6 @@ Foul が、このような「反則」を敢えて犯すのは、信頼する特
 
 Mac 版とWindows 版のプレビルドのバイナリーは[リリースページ](https://github.com/takahashihideki-git/Foul/releases/)からダウンロードしてください。
 
+## License
+
+MIT
