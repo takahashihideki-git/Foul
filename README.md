@@ -22,7 +22,7 @@ Foul は、[Electron](http://electron.atom.io/) でつくられた Mac と Windo
 
 たとえば、
 
-二つの任意のURLを指定して、双方の HTML コードの差分を検出する[小さなアプリケーション](http://takahashihideki-git.github.io/FoulPlay/mergely.html)（[jQuery](https://jquery.com/) + [CodeMirror](https://codemirror.net/) + [mergery](https://github.com/wickedest/Mergely) + 約140行の静的なHTMLファイル）。
+二つの任意のURLを指定して、双方の HTML コードの差分を検出する[小さなアプリケーション](http://takahashihideki-git.github.io/FoulPlay/diffTwoUrls.html)（[jQuery](https://jquery.com/) + [CodeMirror](https://codemirror.net/) + [mergery](https://github.com/wickedest/Mergely) + 約140行の静的なHTMLファイル）。
 
 あるいは、
 
