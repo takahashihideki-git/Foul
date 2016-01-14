@@ -22,11 +22,11 @@ Foul は、[Electron](http://electron.atom.io/) でつくられた Mac と Windo
 
 たとえば、
 
-二つの任意のURLを指定して、双方の HTML コードの差分を検出する[小さなアプリケーション](http://www.takahashihideki.net/dev/Mergely/examples/crossOrigin.html)（[jQuery](https://jquery.com/) + [CodeMIrror](https://codemirror.net/) + [mergery](https://github.com/wickedest/Mergely) + 約140行の静的なHTMLファイル）。
+二つの任意のURLを指定して、双方の HTML コードの差分を検出する[小さなアプリケーション](http://takahashihideki-git.github.io/FoulPlay/diffTwoUrls.html)（[jQuery](https://jquery.com/) + [CodeMirror](https://codemirror.net/) + [mergery](https://github.com/wickedest/Mergely) + 約140行の静的なHTMLファイル）。
 
 あるいは、
 
-ローカルディスクに保存されている markdown  ファイルの編集とプレビューを行う[小さなアプリケーション](https://dl.dropboxusercontent.com/u/223789/dev/markdownEditor.html)（[marked.js](https://github.com/chjj/marked) + 約150行の静的なHTMLファイル）。
+ローカルディスクに保存されている markdown  ファイルの編集とプレビューを行う[小さなアプリケーション](http://takahashihideki-git.github.io/FoulPlay/markdownEditor.html)（[marked.js](https://github.com/chjj/marked) + 約150行の静的なHTMLファイル）。
 
 これらは、一般的な Web ブラウザーではセキュリティ上の制約から正しく動作しません。しかし、Foul ではユーザーと開発者の期待どおりに動作します。
 
@@ -47,3 +47,12 @@ Foul が、このような「反則」を敢えて犯すのは、信頼する特
 
 Mac 版とWindows 版のプレビルドのバイナリーは[リリースページ](https://github.com/takahashihideki-git/Foul/releases/)からダウンロードしてください。
 
+## Foul Play
+
+下記のサイトで、Foul の「反則技」の実例をご確認ください。
+
+[Foul Play](http://takahashihideki-git.github.io/FoulPlay/doc/index.html)
+
+## License
+
+MIT
