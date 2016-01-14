@@ -16,7 +16,7 @@ var mainWindow = null;
 App.on( 'window-all-closed', function() {
   if ( process.platform != 'darwin' ) {
     quit();
-  } 
+  }
 } );
 
 // This method will be called when Electron has done everything
@@ -48,7 +48,7 @@ App.on( 'ready', function() {
       event.returnValue = "received";
     }
     else {
-      event.returnValue = "error: invalid data";  
+      event.returnValue = "error: invalid data";
     }
   } );
 
@@ -95,7 +95,7 @@ var createMainWindow = function () {
 // Create Menu Bar
 var menuBar = new Menu();
 menuBar = Menu.buildFromTemplate( [
-  { 
+  {
     label: "Menu",
     submenu: [
       {
@@ -285,7 +285,7 @@ ShortcutManager.prototype = {
     if ( this.shortcuts && this.shortcuts[ url ] ) {
       return true;
     }
-    
+
     return false;
 
   }

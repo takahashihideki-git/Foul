@@ -24,7 +24,7 @@ body {
   position: fixed;
   top: 0;
   width: 100%;
-  background-color: #eee;    
+  background-color: #eee;
 }
 .addressBar-buttons-left {
   position: absolute;
@@ -154,16 +154,16 @@ input[name=url] {
 
 <script class="extensionCode" type="text/x-template">
 try {
-  
+
   window.ipc = require('ipc');
 
   window.foul = {
     send: function ( channel, arg, callback ) {
       var innerCallbackName = "_fs_" + window.foul.uuid();
       window.foul.setCallback( innerCallbackName, callback );
-      window.ipc.sendToHost( { 
+      window.ipc.sendToHost( {
         method: "sendSync",
-        channel: channel, 
+        channel: channel,
         arg: arg,
         callback: innerCallbackName
       } );
@@ -177,7 +177,7 @@ try {
       // from https://gist.github.com/jcxplorer/823878
       var uuid = "", i, random;
       for ( i = 0; i < 32; i++ ) {
-        random = Math.random() * 16 | 0; 
+        random = Math.random() * 16 | 0;
         if ( i == 8 || i == 12 || i == 16 || i == 20 ) {
           uuid += "-"
         }
@@ -210,36 +210,36 @@ try {
     save: function ( args ) {
       var callback = "_fs_" + window.foul.uuid();
       window.fileSystem.setCallback( callback, args.success, args.error );
-      window.ipc.sendToHost( { 
+      window.ipc.sendToHost( {
         method: "save",
-        path: args.path, 
+        path: args.path,
         content: args.content,
         callback: callback,
-        encoding: args.encoding  
+        encoding: args.encoding
       } );
     },
     selectFolder: function ( args ) {
       var callback = "_fs_" + window.foul.uuid();
       window.fileSystem.setCallback( callback, args.callback );
-      window.ipc.sendToHost( { 
+      window.ipc.sendToHost( {
         method: "selectFolder",
-        path: args.path, 
+        path: args.path,
         callback: callback
       } );
     },
     getFiles: function ( args ) {
       var callback = "_fs_" + window.foul.uuid();
       window.fileSystem.setCallback( callback, args.success, args.error );
-      window.ipc.sendToHost( { 
+      window.ipc.sendToHost( {
         method: "getFiles",
-        path: args.path, 
+        path: args.path,
         callback: callback
       } );
     },
     exec: function ( args ) {
       var callback = "_fs_" + window.foul.uuid();
       window.fileSystem.setCallback( callback, args.success, args.error );
-      window.ipc.sendToHost( { 
+      window.ipc.sendToHost( {
         method: "exec",
         path: args.path,
         command: args.command,
@@ -339,7 +339,7 @@ Foul.prototype = {
         foul.webview.executeJavaScript( "window.location.href='" + url + "'" );
       }
       else {
-        foul.webview.executeJavaScript( "window.location.href='http://www.google.com/search?q=" + encodeURIComponent( url ) + "'" ); 
+        foul.webview.executeJavaScript( "window.location.href='http://www.google.com/search?q=" + encodeURIComponent( url ) + "'" );
       }
     }, false );
 
@@ -361,7 +361,7 @@ Foul.prototype = {
         return;
       }
       if ( foul.addressBar.querySelector( "input" ).value ) {
-        var result = Gv.ipc.sendSync( "addShortcut", { 
+        var result = Gv.ipc.sendSync( "addShortcut", {
           url: foul.webview.getUrl(),
           title: foul.webview.getTitle()
         } );
@@ -377,48 +377,48 @@ Foul.prototype = {
 
     // context menu
     var menu = new Gv.Menu();
-    menu.append( new Gv.MenuItem( { 
+    menu.append( new Gv.MenuItem( {
       label: 'Copy',
-      click: function() {  
+      click: function() {
         ( Gv.remote.getCurrentWebContents() ).copy();
       },
       accelerator: "CommandOrControl+C"
     } ) );
-    menu.append( new Gv.MenuItem( { 
+    menu.append( new Gv.MenuItem( {
       label: 'Cut',
-      click: function() {  
+      click: function() {
         ( Gv.remote.getCurrentWebContents() ).cut();
       },
       accelerator: "CommandOrControl+X"
     } ) );
-    menu.append( new Gv.MenuItem( { 
+    menu.append( new Gv.MenuItem( {
       label: 'Paste',
-      click: function() {  
+      click: function() {
         ( Gv.remote.getCurrentWebContents() ).paste();
       },
       accelerator: "CommandOrControl+V"
     } ) );
-    menu.append( new Gv.MenuItem( { 
+    menu.append( new Gv.MenuItem( {
       label: 'Delete',
-      click: function() {  
+      click: function() {
         ( Gv.remote.getCurrentWebContents() ).delete();
       },
       accelerator: "CommandOrControl+D"
     } ) );
-    menu.append( new Gv.MenuItem( { 
-      label: 'Select All', 
-      click: function() {  
+    menu.append( new Gv.MenuItem( {
+      label: 'Select All',
+      click: function() {
         ( Gv.remote.getCurrentWebContents() ).selectAll();
       },
       accelerator: "CommandOrControl+A"
     } ) );
 
     foul.addressBar.querySelector( "input" ).addEventListener( "contextmenu", function ( e ) {
-        e.preventDefault();      
-        menu.popup( Gv.remote.getCurrentWindow() );    
+        e.preventDefault();
+        menu.popup( Gv.remote.getCurrentWindow() );
     } );
 
-    // check focus for global shortcuts 
+    // check focus for global shortcuts
     foul.addressBar.querySelector( "input" ).addEventListener( "mousedown", function ( e ) {
       foul.focused = Gv.remote.getCurrentWebContents();
     } );
@@ -459,14 +459,14 @@ Foul.prototype = {
       Gv.util.removeClass( this.addressBar.querySelector( ".addressBar-button-reload" ), "inactive" );
     }
 
-    if ( 
-      Gv.ipc.sendSync( "isRegistered", { url: this.webview.getUrl() } ) ||  
+    if (
+      Gv.ipc.sendSync( "isRegistered", { url: this.webview.getUrl() } ) ||
       this.isHome( this.webview.getUrl() )
     ) {
       Gv.util.addClass( this.addressBar.querySelector( ".addressBar-button-add" ), "inactive" );
     }
     else {
-      Gv.util.removeClass( this.addressBar.querySelector( ".addressBar-button-add" ), "inactive" );  
+      Gv.util.removeClass( this.addressBar.querySelector( ".addressBar-button-add" ), "inactive" );
     }
 
   },
@@ -509,6 +509,20 @@ Foul.prototype = {
 
     } );
 
+    // changed hash
+    foul.webview.addEventListener( "did-navigate-in-page", function () {
+        var url = foul.webview.getUrl();
+        if ( foul.isHome( url ) ) {
+          foul.inputAddress( "" );
+        }
+        else {
+          foul.inputAddress( url );
+        }
+        document.querySelector( "title" ).innerHTML = foul.webview.getTitle();
+        foul.stopAddressBarSpinner();
+        foul.updateAddressBarButtons();
+    } );
+
     // response
     foul.webview.addEventListener( "did-get-response-details", function ( e ) {
       if ( e.httpResponseCode == "401" ) {
@@ -536,37 +550,37 @@ Foul.prototype = {
 
     // context menu
     var menu = new Gv.Menu();
-    menu.append( new Gv.MenuItem( { 
+    menu.append( new Gv.MenuItem( {
       label: 'Copy',
-      click: function() {  
+      click: function() {
         foul.webview.copy();
       },
       accelerator: "CommandOrControl+C"
     } ) );
-    menu.append( new Gv.MenuItem( { 
+    menu.append( new Gv.MenuItem( {
       label: 'Cut',
-      click: function() {  
+      click: function() {
         foul.webview.cut();
       },
       accelerator: "CommandOrControl+X"
     } ) );
-    menu.append( new Gv.MenuItem( { 
+    menu.append( new Gv.MenuItem( {
       label: 'Paste',
-      click: function() {  
+      click: function() {
         foul.webview.paste();
       },
       accelerator: "CommandOrControl+V"
     } ) );
-    menu.append( new Gv.MenuItem( { 
+    menu.append( new Gv.MenuItem( {
       label: 'Delete',
-      click: function() {  
+      click: function() {
         foul.webview.delete();
       },
       accelerator: "CommandOrControl+D"
     } ) );
-    menu.append( new Gv.MenuItem( { 
-      label: 'Select All', 
-      click: function() {  
+    menu.append( new Gv.MenuItem( {
+      label: 'Select All',
+      click: function() {
         foul.webview.selectAll();
       },
       accelerator: "CommandOrControl+A"
@@ -574,12 +588,12 @@ Foul.prototype = {
 
     foul.webview.addEventListener( "contextmenu", function ( e ) {
       if ( ! foul.isHome( e.target.getUrl() ) ) {
-        e.preventDefault();      
-        menu.popup( Gv.remote.getCurrentWindow() );    
+        e.preventDefault();
+        menu.popup( Gv.remote.getCurrentWindow() );
       }
     } );
 
-    // check focus for global shortcuts 
+    // check focus for global shortcuts
     foul.webview.addEventListener( "mousedown", function ( e ) {
       foul.focused = foul.webview;
     } );
@@ -615,7 +629,7 @@ Foul.prototype = {
 
       if ( message.method == "sendSync" ) {
         var result = Gv.ipc.sendSync( message.channel, message.arg );
-        foul.webview.send( message.callback, result ); 
+        foul.webview.send( message.callback, result );
       }
 
     } );
@@ -674,7 +688,7 @@ Foul.prototype = {
           }
 
         }
-        else {          
+        else {
           if ( encoding ) {
             data = Gv.encoding.codeToString( Gv.encoding.convert( data, { from: encoding, to: "UNICODE" } ) );
           }
@@ -706,9 +720,9 @@ Foul.prototype = {
 
     if ( encoding ) {
 
-      var converted = Gv.encoding.convert( 
-        content.split( "" ).map( function ( c ) { return c.charCodeAt( 0 ) } ), 
-        { from: "UNICODE", to: encoding } 
+      var converted = Gv.encoding.convert(
+        content.split( "" ).map( function ( c ) { return c.charCodeAt( 0 ) } ),
+        { from: "UNICODE", to: encoding }
       );
 
       content = new Gv.remote.getGlobal( "Buffer" )( converted );
@@ -799,14 +813,14 @@ Foul.prototype = {
         var list = new Array();
         for ( var i = 0; i < files.length; i++ ) { ( function () {
           var stat = Gv.fs.statSync( Gv.path.normalize( path + "/" + files[ i ] ) );
-          list.push( {  
+          list.push( {
             name: files[ i ],
             isDirectory: stat.isDirectory(),
             size: stat.size,
-            accessTime: ( new Date( Gv.nodeUtil.inspect( stat.atime ) ) ).getTime(), 
-            modifiedTime: ( new Date( Gv.nodeUtil.inspect( stat.mtime ) ) ).getTime(), 
-            changeTime: ( new Date( Gv.nodeUtil.inspect( stat.ctime ) ) ).getTime(), 
-            birthTime: ( new Date( Gv.nodeUtil.inspect( stat.birthtime ) ) ).getTime() 
+            accessTime: ( new Date( Gv.nodeUtil.inspect( stat.atime ) ) ).getTime(),
+            modifiedTime: ( new Date( Gv.nodeUtil.inspect( stat.mtime ) ) ).getTime(),
+            changeTime: ( new Date( Gv.nodeUtil.inspect( stat.ctime ) ) ).getTime(),
+            birthTime: ( new Date( Gv.nodeUtil.inspect( stat.birthtime ) ) ).getTime()
           } );
         } )() }
         foul.webview.send( callback, { status: 1, path: path, content: list } );
@@ -837,25 +851,25 @@ Foul.prototype = {
         if ( encoding ) {
 
           if ( stdout ) {
-            stdout = Gv.encoding.codeToString( 
-              Gv.encoding.convert( 
-                stdout, 
-                { from: encoding, to: "UNICODE" } 
-              ) 
+            stdout = Gv.encoding.codeToString(
+              Gv.encoding.convert(
+                stdout,
+                { from: encoding, to: "UNICODE" }
+              )
             );
           }
           if ( stderr ) {
-            stderr = Gv.encoding.codeToString( 
-              Gv.encoding.convert( 
-                stderr, 
-                { from: encoding, to: "UNICODE" } 
-              ) 
+            stderr = Gv.encoding.codeToString(
+              Gv.encoding.convert(
+                stderr,
+                { from: encoding, to: "UNICODE" }
+              )
             );
           }
 
         }
 
-        foul.webview.send( callback, { status: 1, content: { stdout: stdout, stderr: stderr } } ); 
+        foul.webview.send( callback, { status: 1, content: { stdout: stdout, stderr: stderr } } );
 
       }
     } );
@@ -950,27 +964,27 @@ var setGlobalShortcuts = function () {
 
   // Global shortcuts
   Gv.setGlobalShortcuts = function () {
-    Gv.GlobalShortcut.register( 'CommandOrControl+C', function() { 
+    Gv.GlobalShortcut.register( 'CommandOrControl+C', function() {
       if ( Gv.remote.getCurrentWindow().isFocused() && Gv.foul.focused ) {
         Gv.foul.focused.copy();
       }
     } );
-    Gv.GlobalShortcut.register( 'CommandOrControl+X', function() { 
+    Gv.GlobalShortcut.register( 'CommandOrControl+X', function() {
       if ( Gv.remote.getCurrentWindow().isFocused() && Gv.foul.focused ) {
         Gv.foul.focused.cut();
       }
     } );
-    Gv.GlobalShortcut.register( 'CommandOrControl+V', function() { 
+    Gv.GlobalShortcut.register( 'CommandOrControl+V', function() {
       if ( Gv.remote.getCurrentWindow().isFocused() && Gv.foul.focused ) {
         Gv.foul.focused.paste();
       }
     } );
-    Gv.GlobalShortcut.register( 'CommandOrControl+D', function() { 
+    Gv.GlobalShortcut.register( 'CommandOrControl+D', function() {
       if ( Gv.remote.getCurrentWindow().isFocused() && Gv.foul.focused ) {
         Gv.foul.focused.delete();
       }
     } );
-    Gv.GlobalShortcut.register( 'CommandOrControl+A', function() { 
+    Gv.GlobalShortcut.register( 'CommandOrControl+A', function() {
       if ( Gv.remote.getCurrentWindow().isFocused() && Gv.foul.focused ) {
         Gv.foul.focused.selectAll();
       }
@@ -1000,7 +1014,7 @@ var setUtilities = function () {
   }
   Gv.util.removeClass = function ( dom, className ) {
     var classes = dom.getAttribute( "class" ).split( /\s+/ );
-    var newClasses = new Array(); 
+    var newClasses = new Array();
     for ( var i = 0; i < classes.length; i++ ) {
       if ( classes[ i ] != className ) {
         newClasses.push( classes[ i ] );
