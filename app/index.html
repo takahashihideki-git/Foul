@@ -168,6 +168,15 @@ try {
         callback: innerCallbackName
       } );
     },
+    setUserAgent: function ( args ) {
+      var callback = "_fs_" + window.foul.uuid();
+      window.foul.setCallback( callback, args.callback );
+      window.ipc.sendToHost( {
+        method: "setUserAgent",
+        userAgent: args.userAgent,
+        callback: callback
+      } );
+    },
     setCallback: function ( name, callback ) {
       window.ipc.on( name, function ( message ) {
         callback( message );
@@ -632,6 +641,10 @@ Foul.prototype = {
         foul.webview.send( message.callback, result );
       }
 
+      if ( message.method == "setUserAgent" ) {
+          foul.setUserAgent( message.userAgent, message.callback );
+      }
+
     } );
 
   },
@@ -660,6 +673,11 @@ Foul.prototype = {
       }
     } );
 
+  },
+
+  setUserAgent: function ( userAgent, callback ) {
+      this.webview.setUserAgent( userAgent );
+      this.webview.send( callback, { status: 1, userAgent: userAgent } );
   },
 
   openFile: function ( path, callback, encoding ) {
